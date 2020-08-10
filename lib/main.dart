@@ -1,4 +1,6 @@
+import 'package:age/age.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,28 +31,32 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
+    Widget birthDateInsert = _buildDateSelect(birthday);
+    Widget todayInsert = _buildDateSelect(endDay);
 
-    Widget birthDateInsert = _buildDateSelect();
-    Widget todayInsert = _buildDateSelect();
     Widget clearOrCalcButtons = IntrinsicHeight(
         child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Expanded(child: _buildOrangeButton("Clear")),
+        Expanded(child: _buildClearButton()),
         SizedBox(width: 20),
-        Expanded(child: _buildOrangeButton("Calculate")),
+        Expanded(child: _buildCalculateButton()),
       ],
     ));
     Widget ageResult = _buildResultsRow();
     Widget nextBirthdayResult = _buildResultsRow();
 
     return Padding(
-      padding: const EdgeInsets.only(top:30.0, left:16, right:16),
+      padding: const EdgeInsets.only(top: 30.0, left: 16, right: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -93,7 +99,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  _buildDateSelect() {
+  _buildDateSelect(param) {
     return Container(
       decoration: BoxDecoration(
           border: Border.all(width: 2, color: Colors.orange),
@@ -105,7 +111,9 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              "10-4-2017",
+              param["d"] == null
+                  ? formatter.format(DateTime.now()).toString()
+                  : formatter.format(param["d"]).toString(),
               style: TextStyle(fontSize: 20, color: Colors.black54),
             ),
             IconButton(
@@ -114,7 +122,18 @@ class HomePage extends StatelessWidget {
                 color: Colors.orange,
                 size: 38,
               ),
-              onPressed: () {},
+              onPressed: () {
+                showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime(2100))
+                    .then((date) {
+                  setState(() {
+                    param["d"] = date;
+                  });
+                });
+              },
             )
           ],
         ),
@@ -122,11 +141,31 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrangeButton(String text) {
+  var formatter = new DateFormat('dd-MM-yyyy');
+  var birthday = {"d": DateTime.now()}; //to pass by reference, turned to var
+  var endDay = {"d": DateTime.now()};
+  String year, month, day;
+
+  Widget _buildCalculateButton() {
     return FlatButton(
       color: Colors.orange,
-      onPressed: () {},
-      child: Text(text, style: TextStyle(fontSize: 20, color: Colors.white)),
+      onPressed: () {
+        AgeDuration age;
+        age = Age.dateDifference(fromDate: birthday["d"], toDate: endDay["d"]);
+        print(age);
+      },
+      child: Text("Calculate", style: TextStyle(fontSize: 20, color: Colors.white)),
+    );
+  }
+
+  Widget _buildClearButton() {
+    return FlatButton(
+      color: Colors.orange,
+      onPressed: () {
+          AgeDuration age;
+          age = Age.dateDifference(fromDate: birthday["d"], toDate: endDay["d"]);
+      },
+      child: Text("Clear", style: TextStyle(fontSize: 20, color: Colors.white)),
     );
   }
 
@@ -141,9 +180,9 @@ class HomePage extends StatelessWidget {
                 color: Colors.orange,
                 child: Center(
                     child: Text(
-                      timeName,
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    )),
+                  timeName,
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                )),
               ),
             ),
             Expanded(
