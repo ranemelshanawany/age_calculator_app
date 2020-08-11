@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
       children: <Widget>[
         Expanded(child: _buildClearButton()),
         SizedBox(width: 20),
-        Expanded(child: _buildCalculateAgeButton()),
+        Expanded(child: _buildCalculateButton()),
       ],
     ));
     Widget ageResult = _buildResultsRow(false);
@@ -147,19 +147,15 @@ class _HomePageState extends State<HomePage> {
   _showCalender(context, param) {
     showDatePicker(
             context: context,
-            initialDate: DateTime.now(),
+            initialDate: param["d"],
             firstDate: DateTime(1900),
             lastDate: DateTime(2100),
       builder: (BuildContext context, Widget child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
+          data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
               primary: Colors.orange,
-              onPrimary: Colors.purple,
-              surface: Colors.pink,
-              onSurface: Colors.yellow,
             ),
-            dialogBackgroundColor:Colors.blue[900],
           ),
           child: child,
         );
@@ -172,7 +168,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildCalculateAgeButton() {
+  Widget _buildCalculateButton() {
     return FlatButton(
       color: Colors.orange,
       onPressed: () {
