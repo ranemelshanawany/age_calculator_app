@@ -93,17 +93,11 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                birthDay == null
-                    ? formatter.format(DateTime.now()).toString()
-                    : formatter.format(birthDay).toString(),
+                _displayDate(birthDay),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
-                icon: Icon(
-                  Icons.date_range,
-                  color: Colors.orange,
-                  size: 38,
-                ),
+                icon: _displayDateIcon(),
                 onPressed: () {
                   _showCalender(context).then((date) {
                     setState(() {
@@ -135,17 +129,11 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                today == null
-                    ? formatter.format(DateTime.now()).toString()
-                    : formatter.format(today).toString(),
+                _displayDate(today),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
-                icon: Icon(
-                  Icons.date_range,
-                  color: Colors.orange,
-                  size: 38,
-                ),
+                icon: _displayDateIcon(),
                 onPressed: () {
                   _showCalender(context).then((date) {
                     setState(() {
@@ -183,14 +171,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildClearCalcRow() {
     return IntrinsicHeight(
         child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Expanded(child: _buildClearButton()),
-        SizedBox(width: 20),
-        Expanded(child: _buildCalculateButton()),
-      ],
-    ));
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(child: _buildClearButton()),
+            spacing(20),
+            Expanded(child: _buildCalculateButton()),
+          ],
+        ));
   }
 
   Widget _buildCalculateButton() {
@@ -207,8 +195,7 @@ class _HomePageState extends State<HomePage> {
               dayResult = result.days.toString();
             });
           });
-          AgeCalculate.calculateNextBirthday(context, toNextBirthday)
-              .then((result) {
+          AgeCalculate.calculateNextBirthday(context, toNextBirthday).then((result) {
             setState(() {
               monthsNextBirth = result.months.toString();
               daysNextBirth = result.days.toString();
@@ -255,9 +242,9 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.orange,
                 child: Center(
                     child: Text(
-                  timeName,
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                )),
+                      timeName,
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    )),
               ),
             ),
             Expanded(
@@ -268,24 +255,24 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Center(
                   child: Text((() {
-                        if (timeName == "Years") {
-                          if (nextBirthDay) {
-                            return yearsNextBirth;
-                          }
-                          return yearResult;
-                        } else if (timeName == "Months") {
-                          if (nextBirthDay) {
-                            return monthsNextBirth;
-                          }
-                          return monthResult;
-                        } else if (timeName == "Days") {
-                          if (nextBirthDay) {
-                            return daysNextBirth;
-                          }
-                          return dayResult;
-                        }
-                        return " ";
-                      })() ??
+                    if (timeName == "Years") {
+                      if (nextBirthDay) {
+                        return yearsNextBirth;
+                      }
+                      return yearResult;
+                    } else if (timeName == "Months") {
+                      if (nextBirthDay) {
+                        return monthsNextBirth;
+                      }
+                      return monthResult;
+                    } else if (timeName == "Days") {
+                      if (nextBirthDay) {
+                        return daysNextBirth;
+                      }
+                      return dayResult;
+                    }
+                    return " ";
+                  })() ??
                       " "),
                 ),
               ),
@@ -301,13 +288,9 @@ class _HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         _buildResultColumn("Years", nextBirthday),
-        SizedBox(
-          width: 4,
-        ),
+        spacing(4),
         _buildResultColumn("Months", nextBirthday),
-        SizedBox(
-          width: 4,
-        ),
+        spacing(4),
         _buildResultColumn("Days", nextBirthday)
       ],
     );
@@ -348,6 +331,22 @@ class _HomePageState extends State<HomePage> {
   Widget spacing(double size) {
     return SizedBox(
       height: size,
+    );
+  }
+
+  _displayDate(DateTime date)
+  {
+    return date == null
+        ? formatter.format(DateTime.now()).toString()
+        : formatter.format(date).toString();
+  }
+
+  _displayDateIcon()
+  {
+    return Icon(
+      Icons.date_range,
+      color: Colors.orange,
+      size: 38,
     );
   }
 }
