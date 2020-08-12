@@ -40,19 +40,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    Widget birthDateInsert = _buildDateSelect(birthday);
-    Widget todayInsert = _buildDateSelect(endDay);
+    Widget birthDateInsert = _buildBirthDateSelect();
+    Widget todayInsert = _buildEndDateSelect();
 
     Widget clearOrCalcButtons = IntrinsicHeight(
         child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Expanded(child: _buildClearButton()),
-        SizedBox(width: 20),
-        Expanded(child: _buildCalculateButton()),
-      ],
-    ));
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(child: _buildClearButton()),
+            SizedBox(width: 20),
+            Expanded(child: _buildCalculateButton()),
+          ],
+        ));
     Widget ageResult = _buildResultsRow(false);
     Widget nextBirthdayResult = _buildResultsRow(true);
 
@@ -100,10 +100,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _buildDateSelect(param) {
+  var formatter = new DateFormat('dd-MM-yyyy');
+  var birthday = {"d": DateTime.now()}; //to pass by reference, turned to var
+  var endDay = {"d": DateTime.now()};
+  DateTime brthDay = DateTime.now();
+  DateTime tDay = DateTime.now();
+  String yearResult = "", monthResult = "", dayResult = "";
+  String monthsNextBirth = "", daysNextBirth = "", yearsNextBirth = "";
+
+  _buildBirthDateSelect() {
     return InkWell(
       onTap: () {
-        _showCalender(context, param);
+        _showCalender(context);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -116,9 +124,9 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                param["d"] == null
+                brthDay == null
                     ? formatter.format(DateTime.now()).toString()
-                    : formatter.format(param["d"]).toString(),
+                    : formatter.format(brthDay).toString(),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
@@ -128,7 +136,11 @@ class _HomePageState extends State<HomePage> {
                   size: 38,
                 ),
                 onPressed: () {
-                  _showCalender(context, param);
+                  _showCalender(context).then((date) {
+                    setState(() {
+                      brthDay = date;
+                    });
+                  });
                 },
               )
             ],
@@ -138,18 +150,55 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  var formatter = new DateFormat('dd-MM-yyyy');
-  var birthday = {"d": DateTime.now()}; //to pass by reference, turned to var
-  var endDay = {"d": DateTime.now()};
-  String yearResult = "", monthResult = "", dayResult = "";
-  String monthsNextBirth = "", daysNextBirth = "", yearsNextBirth = "";
+  _buildEndDateSelect() {
+    return InkWell(
+      onTap: () {
+        _showCalender(context);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 2, color: Colors.orange),
+        ),
+        padding: EdgeInsets.only(left: 5),
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                tDay == null
+                    ? formatter.format(DateTime.now()).toString()
+                    : formatter.format(tDay).toString(),
+                style: TextStyle(fontSize: 20, color: Colors.black54),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.date_range,
+                  color: Colors.orange,
+                  size: 38,
+                ),
+                onPressed: () {
+                  _showCalender(context).then((date) {
+                    setState(() {
+                      tDay = date;
+                    });
+                  });
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-  _showCalender(context, param) {
-    showDatePicker(
-            context: context,
-            initialDate: param["d"],
-            firstDate: DateTime(1900),
-            lastDate: DateTime(2100),
+
+  _showCalender(context) {
+    return showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
       builder: (BuildContext context, Widget child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -160,12 +209,7 @@ class _HomePageState extends State<HomePage> {
           child: child,
         );
       },
-    )
-        .then((date) {
-      setState(() {
-        param["d"] = date;
-      });
-    });
+    );
   }
 
   Widget _buildCalculateButton() {
@@ -174,14 +218,14 @@ class _HomePageState extends State<HomePage> {
       onPressed: () {
         AgeDuration age;
         AgeDuration toNextBirthday;
-        if (endDay["d"].isAfter(birthday["d"])) {
+        if (tDay.isAfter(brthDay)) {
           _calculateAge(age);
           _calculateNextBirthday(toNextBirthday);
         }
         else
-          {
-            _showAlertDialog(context);
-          }
+        {
+          _showAlertDialog(context);
+        }
       },
       child: Text("Calculate",
           style: TextStyle(fontSize: 20, color: Colors.white)),
@@ -189,8 +233,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   _calculateAge(AgeDuration age) {
-    if (birthday["d"] != null && endDay["d"] != null) {
-      age = Age.dateDifference(fromDate: birthday["d"], toDate: endDay["d"]);
+    if (brthDay != null && tDay != null) {
+      age = Age.dateDifference(fromDate: brthDay, toDate: tDay);
       setState(() {
         yearResult = age.years.toString();
         monthResult = age.months.toString();
@@ -201,21 +245,21 @@ class _HomePageState extends State<HomePage> {
 
   _calculateNextBirthday(AgeDuration age) {
     var nextBirthday;
-    if (birthday["d"] != null && endDay["d"] != null) {
-      if (birthday["d"].isBefore(endDay["d"])) {
-        int year = endDay["d"].year + 1;
-        int month = birthday["d"].month;
-        int day = birthday["d"].day;
+    if (brthDay != null && tDay != null) {
+      if (brthDay.isBefore(tDay )) {
+        int year = tDay.year + 1;
+        int month = brthDay.month;
+        int day = brthDay.day;
         nextBirthday = new DateTime(year, month, day);
       } else {
-        int year = endDay["d"].year;
-        int month = birthday["d"].month;
-        int day = birthday["d"].day;
+        int year = tDay.year;
+        int month = brthDay.month;
+        int day = brthDay.day;
         nextBirthday = new DateTime(year, month, day);
       }
 
       setState(() {
-        age = Age.dateDifference(fromDate: endDay["d"], toDate: nextBirthday);
+        age = Age.dateDifference(fromDate: tDay, toDate: nextBirthday);
         monthsNextBirth = age.months.toString();
         daysNextBirth = age.days.toString();
         yearsNextBirth = age.years.toString();
@@ -254,9 +298,9 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.orange,
                 child: Center(
                     child: Text(
-                  timeName,
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                )),
+                      timeName,
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    )),
               ),
             ),
             Expanded(
@@ -267,24 +311,24 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Center(
                   child: Text((() {
-                        if (timeName == "Years") {
-                          if (nextBirthDay) {
-                            return yearsNextBirth;
-                          }
-                          return yearResult;
-                        } else if (timeName == "Months") {
-                          if (nextBirthDay) {
-                            return monthsNextBirth;
-                          }
-                          return monthResult;
-                        } else if (timeName == "Days") {
-                          if (nextBirthDay) {
-                            return daysNextBirth;
-                          }
-                          return dayResult;
-                        }
-                        return " ";
-                      })() ??
+                    if (timeName == "Years") {
+                      if (nextBirthDay) {
+                        return yearsNextBirth;
+                      }
+                      return yearResult;
+                    } else if (timeName == "Months") {
+                      if (nextBirthDay) {
+                        return monthsNextBirth;
+                      }
+                      return monthResult;
+                    } else if (timeName == "Days") {
+                      if (nextBirthDay) {
+                        return daysNextBirth;
+                      }
+                      return dayResult;
+                    }
+                    return " ";
+                  })() ??
                       " "),
                 ),
               ),
@@ -343,7 +387,5 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
-
+  
 }
-
