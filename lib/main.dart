@@ -1,7 +1,8 @@
-import 'package:age/age.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'AgeCalculation.dart';
+import 'package:age/age.dart';
 
 void main() {
   runApp(MyApp());
@@ -42,17 +43,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     Widget birthDateInsert = _buildBirthDateSelect();
     Widget todayInsert = _buildEndDateSelect();
-
-    Widget clearOrCalcButtons = IntrinsicHeight(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(child: _buildClearButton()),
-            SizedBox(width: 20),
-            Expanded(child: _buildCalculateButton()),
-          ],
-        ));
+    Widget clearAndCalcButtons = _buildClearCalcRow();
     Widget ageResult = _buildResultsRow(false);
     Widget nextBirthdayResult = _buildResultsRow(true);
 
@@ -63,37 +54,21 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           _displayGreyText("Date of Birth"),
-          SizedBox(
-            height: 10,
-          ),
+          spacing(10),
           birthDateInsert,
-          SizedBox(
-            height: 13,
-          ),
+          spacing(13),
           _displayGreyText("Today Date"),
-          SizedBox(
-            height: 10,
-          ),
+          spacing(10),
           todayInsert,
-          SizedBox(
-            height: 13,
-          ),
-          clearOrCalcButtons,
-          SizedBox(
-            height: 13,
-          ),
+          spacing(13),
+          clearAndCalcButtons,
+          spacing(13),
           _displayGreyText("Age is"),
-          SizedBox(
-            height: 13,
-          ),
+          spacing(13),
           ageResult,
-          SizedBox(
-            height: 13,
-          ),
+          spacing(13),
           _displayGreyText("Next Birth Day in"),
-          SizedBox(
-            height: 13,
-          ),
+          spacing(13),
           nextBirthdayResult,
         ],
       ),
@@ -101,12 +76,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   var formatter = new DateFormat('dd-MM-yyyy');
-  var birthday = {"d": DateTime.now()}; //to pass by reference, turned to var
-  var endDay = {"d": DateTime.now()};
-  DateTime brthDay = DateTime.now();
-  DateTime tDay = DateTime.now();
-  String yearResult = "", monthResult = "", dayResult = "";
-  String monthsNextBirth = "", daysNextBirth = "", yearsNextBirth = "";
 
   _buildBirthDateSelect() {
     return InkWell(
@@ -124,9 +93,9 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                brthDay == null
+                birthDay == null
                     ? formatter.format(DateTime.now()).toString()
-                    : formatter.format(brthDay).toString(),
+                    : formatter.format(birthDay).toString(),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
@@ -138,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   _showCalender(context).then((date) {
                     setState(() {
-                      brthDay = date;
+                      birthDay = date;
                     });
                   });
                 },
@@ -166,9 +135,9 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                tDay == null
+                today == null
                     ? formatter.format(DateTime.now()).toString()
-                    : formatter.format(tDay).toString(),
+                    : formatter.format(today).toString(),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
@@ -180,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   _showCalender(context).then((date) {
                     setState(() {
-                      tDay = date;
+                      today = date;
                     });
                   });
                 },
@@ -191,7 +160,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 
   _showCalender(context) {
     return showDatePicker(
@@ -212,62 +180,51 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildClearCalcRow() {
+    return IntrinsicHeight(
+        child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Expanded(child: _buildClearButton()),
+        SizedBox(width: 20),
+        Expanded(child: _buildCalculateButton()),
+      ],
+    ));
+  }
+
   Widget _buildCalculateButton() {
     return FlatButton(
       color: Colors.orange,
       onPressed: () {
         AgeDuration age;
         AgeDuration toNextBirthday;
-        if (tDay.isAfter(brthDay)) {
-          _calculateAge(age);
-          _calculateNextBirthday(toNextBirthday);
-        }
-        else
-        {
+        if (today.isAfter(birthDay) || today.isAtSameMomentAs(birthDay)) {
+          AgeCalculate.calculateAge(context, age).then((result) {
+            setState(() {
+              yearResult = result.years.toString();
+              monthResult = result.months.toString();
+              dayResult = result.days.toString();
+            });
+          });
+          AgeCalculate.calculateNextBirthday(context, toNextBirthday)
+              .then((result) {
+            setState(() {
+              monthsNextBirth = result.months.toString();
+              daysNextBirth = result.days.toString();
+              yearsNextBirth = result.years.toString();
+              if (result.years == 0 && result.months == 0 && result.days == 0) {
+                yearsNextBirth = "1";
+              }
+            });
+          });
+        } else {
           _showAlertDialog(context);
         }
       },
       child: Text("Calculate",
           style: TextStyle(fontSize: 20, color: Colors.white)),
     );
-  }
-
-  _calculateAge(AgeDuration age) {
-    if (brthDay != null && tDay != null) {
-      age = Age.dateDifference(fromDate: brthDay, toDate: tDay);
-      setState(() {
-        yearResult = age.years.toString();
-        monthResult = age.months.toString();
-        dayResult = age.days.toString();
-      });
-    }
-  }
-
-  _calculateNextBirthday(AgeDuration age) {
-    var nextBirthday;
-    if (brthDay != null && tDay != null) {
-      if (brthDay.isBefore(tDay )) {
-        int year = tDay.year + 1;
-        int month = brthDay.month;
-        int day = brthDay.day;
-        nextBirthday = new DateTime(year, month, day);
-      } else {
-        int year = tDay.year;
-        int month = brthDay.month;
-        int day = brthDay.day;
-        nextBirthday = new DateTime(year, month, day);
-      }
-
-      setState(() {
-        age = Age.dateDifference(fromDate: tDay, toDate: nextBirthday);
-        monthsNextBirth = age.months.toString();
-        daysNextBirth = age.days.toString();
-        yearsNextBirth = age.years.toString();
-        if (age.years == 0 && age.months == 0 && age.days == 0) {
-          yearsNextBirth = "1";
-        }
-      });
-    }
   }
 
   Widget _buildClearButton() {
@@ -298,9 +255,9 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.orange,
                 child: Center(
                     child: Text(
-                      timeName,
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    )),
+                  timeName,
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                )),
               ),
             ),
             Expanded(
@@ -311,24 +268,24 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Center(
                   child: Text((() {
-                    if (timeName == "Years") {
-                      if (nextBirthDay) {
-                        return yearsNextBirth;
-                      }
-                      return yearResult;
-                    } else if (timeName == "Months") {
-                      if (nextBirthDay) {
-                        return monthsNextBirth;
-                      }
-                      return monthResult;
-                    } else if (timeName == "Days") {
-                      if (nextBirthDay) {
-                        return daysNextBirth;
-                      }
-                      return dayResult;
-                    }
-                    return " ";
-                  })() ??
+                        if (timeName == "Years") {
+                          if (nextBirthDay) {
+                            return yearsNextBirth;
+                          }
+                          return yearResult;
+                        } else if (timeName == "Months") {
+                          if (nextBirthDay) {
+                            return monthsNextBirth;
+                          }
+                          return monthResult;
+                        } else if (timeName == "Days") {
+                          if (nextBirthDay) {
+                            return daysNextBirth;
+                          }
+                          return dayResult;
+                        }
+                        return " ";
+                      })() ??
                       " "),
                 ),
               ),
@@ -361,7 +318,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   _showAlertDialog(BuildContext context) {
-
     // set up the button
     Widget okButton = FlatButton(
       child: Text("OK"),
@@ -373,7 +329,8 @@ class _HomePageState extends State<HomePage> {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text("Input Error!"),
-      content: Text("Today's date cannot be before your birth date. Enter date again."),
+      content: Text(
+          "Today's date cannot be before your birth date. Enter date again."),
       actions: [
         okButton,
       ],
@@ -387,5 +344,10 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-  
+
+  Widget spacing(double size) {
+    return SizedBox(
+      height: size,
+    );
+  }
 }
