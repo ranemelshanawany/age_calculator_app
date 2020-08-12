@@ -1,34 +1,29 @@
 import 'package:age/age.dart';
 import 'package:flutter/cupertino.dart';
 
-DateTime birthDay = DateTime.now();
-DateTime today = DateTime.now();
-String yearResult = "", monthResult = "", dayResult = "";
-String monthsNextBirth = "", daysNextBirth = "", yearsNextBirth = "";
-
 class AgeCalculate
 {
-  static Future<AgeDuration> calculateAge(context, AgeDuration age) async{
+  static Future<AgeDuration> calculateAge(context, AgeDuration age, DateTime birthday, DateTime today) async{
 
-    if (birthDay != null && today != null) {
-      age = Age.dateDifference(fromDate: birthDay, toDate: today);
+    if (birthday != null && today != null) {
+      age = Age.dateDifference(fromDate: birthday, toDate: today);
       return age;
     }
     return age;
   }
 
-  static Future<AgeDuration> calculateNextBirthday(context, AgeDuration age) async{
+  static Future<AgeDuration> calculateNextBirthday(context, AgeDuration age, DateTime birthday, DateTime today) async{
     var nextBirthday;
-    if (birthDay != null && today != null) {
-      if (birthDay.isBefore(today )) {
+    if (birthday != null && today != null) {
+      if (birthday.isBefore(today )) {
         int year = today.year + 1;
-        int month = birthDay.month;
-        int day = birthDay.day;
+        int month = birthday.month;
+        int day = birthday.day;
         nextBirthday = new DateTime(year, month, day);
       } else {
         int year = today.year;
-        int month = birthDay.month;
-        int day = birthDay.day;
+        int month = birthday.month;
+        int day = birthday.day;
         nextBirthday = new DateTime(year, month, day);
       }
       age = Age.dateDifference(fromDate: today, toDate: nextBirthday);

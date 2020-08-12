@@ -76,6 +76,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   var formatter = new DateFormat('dd-MM-yyyy');
+  String yearResult = "", monthResult = "", dayResult = "";
+  String monthsNextBirth = "", daysNextBirth = "", yearsNextBirth = "";
+  DateTime birthday = DateTime.now();
+  DateTime today = DateTime.now();
 
   _buildBirthDateSelect() {
     return InkWell(
@@ -93,7 +97,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                _displayDate(birthDay),
+                _displayDate(birthday),
                 style: TextStyle(fontSize: 20, color: Colors.black54),
               ),
               IconButton(
@@ -101,7 +105,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   _showCalender(context).then((date) {
                     setState(() {
-                      birthDay = date;
+                      birthday = date;
                     });
                   });
                 },
@@ -175,7 +179,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(child: _buildClearButton()),
-            spacing(20),
+            SizedBox(width: 20),
             Expanded(child: _buildCalculateButton()),
           ],
         ));
@@ -187,15 +191,16 @@ class _HomePageState extends State<HomePage> {
       onPressed: () {
         AgeDuration age;
         AgeDuration toNextBirthday;
-        if (today.isAfter(birthDay) || today.isAtSameMomentAs(birthDay)) {
-          AgeCalculate.calculateAge(context, age).then((result) {
+        if (today.isAfter(birthday) || today.isAtSameMomentAs(birthday)) {
+          AgeCalculate.calculateAge(context, age, birthday, today).then((result) {
             setState(() {
               yearResult = result.years.toString();
               monthResult = result.months.toString();
               dayResult = result.days.toString();
             });
           });
-          AgeCalculate.calculateNextBirthday(context, toNextBirthday).then((result) {
+          AgeCalculate.calculateNextBirthday(context, toNextBirthday, birthday, today)
+              .then((result) {
             setState(() {
               monthsNextBirth = result.months.toString();
               daysNextBirth = result.days.toString();
@@ -288,9 +293,13 @@ class _HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         _buildResultColumn("Years", nextBirthday),
-        spacing(4),
+        SizedBox(
+          width: 4,
+        ),
         _buildResultColumn("Months", nextBirthday),
-        spacing(4),
+        SizedBox(
+          width: 4,
+        ),
         _buildResultColumn("Days", nextBirthday)
       ],
     );
